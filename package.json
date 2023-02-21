@@ -1,0 +1,20 @@
+{
+  "name": "font-facer",
+  "version": "1.0.0",
+  "description": "Small tool to generate css font-face fields from a fonts folder structure",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "font-face",
+    "generator",
+    "node",
+    "nodejs",
+    "css",
+    "scss"
+  ],
+  "author": "Severin Opel",
+  "license": "ISC"
+}
