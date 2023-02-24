@@ -1,68 +1,202 @@
 import { createWriteStream } from "fs"
-import { readdir, writeFile } from "fs/promises"
+import { readdir } from "fs/promises"
 import path, { extname } from "path"
 
-const supportedFontFileTypes = [".ttf"]
+const supportedFontFileTypes = [".ttf", ".woff", ".woff2"]
 
-const weightMap = {
-    "black": 900,
-    "bold": 700,
-    "semibold": 600,
-    "medium": 500,
-    "normal": 400,
-    "regular": 400,
-    "light": 300,
-    "extralight": 200,
-    "thin": 100
+
+/**
+ * The weights map is used to determine the weight
+ * of the font by checking the name for the appropriate
+ * keyword ('name'). Therefore we use an array and must
+ * assure if we avoid possible collisions:
+ * 
+ * e.g. 'light' needs to be checked after 'extralight'
+ */
+const normalWeight = 400
+const weights = [
+    { name: "thin", weight: 100 },
+    { name: "extralight", weight: 200 },
+    { name: "light", weight: 300 },
+    { name: "regular", weight: normalWeight },
+    { name: "normal", weight: normalWeight },
+    { name: "medium", weight: 500 },
+    { name: "semibold", weight: 600 },
+    { name: "bold", weight: 700 },
+    { name: "black", weight: 900 },
+]
+
+function extractArguments() {
+
+    const args = process.argv.slice(2)
+
+    const configMap = {
+        "--directory": "fontDirectory",
+        "-d": "fontDirectory",
+        "-o": "outDirectory",
+        "--out": "outDirectory",
+        "-n": "fileName",
+        "--file-name": "fileName",
+        "-f": "fontName",
+        "--font-name": "fontName",
+        "-v": "verbose",
+        "--verbose": "verbose"
+    }
+
+    const config = {
+        fontDirectory: null,
+        outDirectory: null,
+        fileName: null,
+        fontName: null,
+        verbose: false
+    }
+
+    let argName = null
+    args.forEach((arg, index) => {
+        if (arg.startsWith("-")) {
+            if (!configMap[arg]) throw new Error(`Unknown argument '${arg}'`)
+            if (arg == "-v" || arg == "--verbose") config.verbose = true
+            else
+                argName = configMap[arg]
+        } else if (argName) {
+            config[argName] = arg
+            argName = null
+        } else if (index == args.length - 1) {
+            config.fontDirectory = arg
+        } else {
+            throw new Error(`Bad arguments: Error at position${index + 1}/${arg}`)
+        }
+    })
+
+    if (!config.fontDirectory) throw new Error("No font directory specified!")
+    if (!config.outDirectory) config.outDirectory = path.resolve()
+
+    return config
+}
+
+function getOutputFileFullPath(outpuDirectory, fontDirectory, fileName) {
+
+    if (!fileName) {
+        const dir = path.resolve(fontDirectory)
+        const pathPieces = dir.split(path.sep)
+        if (pathPieces.length === 0) throw new Error(`Cannot generate filename. Please provide --name (-n) argument!`)
+        fileName = pathPieces.pop() + ".css"
+    }
+
+    return path.resolve(outpuDirectory, fileName)
+
+}
+
+function getAbsolutePaths({
+    fileName = null,
+    fontName = null,
+    fontDirectory = null,
+    outDirectory = null
+}) {
+    return {
+        fontDirectoryFullPath: path.resolve(fontDirectory),
+        outputFileFullPath: getOutputFileFullPath(outDirectory, fontDirectory, fileName),
+        fontName: getFontName(fontName, outDirectory)
+    }
+}
+
+function getFontName(fontName, outDirectory) {
+    if (!fontName) {
+        const pathParts = path.resolve(outDirectory).split(path.sep)
+        if (pathParts.length === 0) throw new Error("Could not generate font-name. Please provide --font-name (-F) argument.")
+        fontName = pathParts.pop()
+    }
+    return fontName
 }
 
 async function main() {
-    const target = "Source_Sans_Pro"
-    const dir = path.join(path.resolve(), target)
-    const out = path.join(path.resolve(), target + ".css")
 
-    const fontName = target.replace(/_/g, "")
-    const config = {}
+    const {
+        fontDirectory,
+        outDirectory,
+        fileName,
+        fontName,
+        verbose
+    } = extractArguments()
 
-    const files = await readdir(dir)
+    const {
+        fontDirectoryFullPath,
+        outputFileFullPath
+    } = getAbsolutePaths({
+        fileName,
+        fontName,
+        fontDirectory,
+        outDirectory
+    })
+
+    const fontFiles = {}
+
+    const files = await readdir(fontDirectoryFullPath)
     for (let file of files) {
+
         const ext = extname(file)
         if (supportedFontFileTypes.indexOf(ext) !== -1) {
-            let type = file.replace(ext, "").replace(fontName + "-", "")
-            let style = 'normal'
-            if (type.match(/italic/gi)) {
-                style = 'italic'
-                type = type.replace(/italic/gi, "")
-            }
 
-            let weightName = type.toLowerCase()
-            if (weightName === "") weightName = "regular"
-            const weight = weightMap[weightName]
+            let fontWeight = getFontWeight(file)
+            let fontStyle = getFontStyle(file)
 
-            if (weight) {
-                if (!config[weightName])
-                    config[weightName] = { italic: null, normal: null }
+            if (!fontFiles[fontWeight]) fontFiles[fontWeight] = { normal: {}, italic: {} }
 
-                if (config[weightName][style] != null) console.error(`Error when registering file '${file}': Style already exists with weight:'${weightName}', style: '${style}' from file ${config[weightName][style]}`)
-                else {
-                    config[weightName][style] = file
-                }
+            if (fontFiles[fontWeight][fontStyle][ext]) {
+                console.error(`Duplicate font detected:\n
+                weight=${fontWeight}, style=${fontStyle}, ext=${ext}\n
+                a:${fontFiles[fontWeight][fontStyle][ext]}\nb:${file}`
+                )
             } else {
-                console.error(`Could not find the weight of file ${file}`)
+                if (verbose)
+                    console.log(`${fontWeight}/${fontStyle}/${ext}: ${file}`)
+                fontFiles[fontWeight][fontStyle][ext] = file
             }
-        }
-        
-        const writeStream = createWriteStream(out)
-        writeStream.write(`/*\nThis file was generated by font-facer from the font files in the dir:\n${target}\n*/\n\n`)
 
-        for(const [weight, {italic, normal}] of Object.entries(config)){
-            for(const font of [italic,normal]){
-                if(font){
-                    writeStream.write(`@font-face {\n    font-family: "${fontName}";\n    font-weight: ${weightMap[weight]};\n    font-style: ${(font === italic)?'italic':'regular'};\n    src: url("${font}");}\n\n`)
-                }
-            }
         }
     }
+
+    const writeStream = createWriteStream(outputFileFullPath)
+    writeStream.write(`/*\nThis file was generated by font-facer from the font files in the dir:\n${outputFileFullPath}\n*/\n\n`)
+
+    for (const [weight, { italic, normal }] of Object.entries(fontFiles)) {
+
+        if (Object.keys(normal).length > 0) {
+            let src = srcFromTypeObject(fontDirectory, italic)
+            const fontFace = generateFontFace(fontName, weight, "normal", src)
+            writeStream.write(fontFace)
+        }
+
+        if (Object.keys(italic).length > 0) {
+            let src = srcFromTypeObject(fontDirectory, italic)
+            const fontFace = generateFontFace(fontName, weight, "italic", src)
+            writeStream.write(fontFace)
+        }
+    }
+}
+
+function generateFontFace(name, weight, style, src) {
+    return `@font-face {\n    font-family: "${name}";\n    font-weight: ${weight};\n    font-style: ${style};\n    src: ${src};\n}\n\n`
+}
+
+function srcFromTypeObject(fontDirectory, typeObject) {
+    return Object.values(typeObject).map((filename) => `url('${fontDirectory.replace(/\\/g, "/")}/${filename}')`).join(", ")
+}
+
+function getFontStyle(filename) {
+    return filename.match(/italic/gi) ? 'italic' : 'normal'
+}
+
+function getFontWeight(filename) {
+    let fontWeight = normalWeight
+    for (let { name, weight } of weights) {
+        let weightRegex = new RegExp(name, "gi")
+        if (filename.match(weightRegex)) {
+            fontWeight = weight
+            break
+        }
+    }
+    return fontWeight
 }
 
 await main().catch(console.error)
