@@ -4,10 +4,16 @@
   "description": "Small tool to generate css font-face fields from a fonts folder structure",
   "main": "index.js",
   "type": "module",
+  "preferGlobal": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
+    "generator",
+    "font",
+    "fonts",
+    "google-fonts",
+    "@font-face",
     "font-face",
     "generator",
     "node",
@@ -16,5 +22,5 @@
     "scss"
   ],
   "author": "Severin Opel",
-  "license": "ISC"
+  "license": "MIT"
 }

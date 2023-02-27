@@ -23,9 +23,10 @@ for the font files inside the target folder.
 
 | short | long | description | default |
 | --- | --- | --- | --- |
-| -d | --directory | Relative path to the font directory. Can be used without any parameter as last argument. | - |
-| -o | --out | Relative output directory of the css file. | "." |
-| -n | --file-name | Name of the output file. | '${font-dir-name}.css' |
+| -f | --font-name | Set the name of font in the output file. Default is the name of the source directory. '_' are reokaced by ' '. | Name of source directory. |
+| -o | --override | Can be set to replace the target file. | '${font-dir-name}.css' |
+| -s | --source | Relative path to the font directory. Can be used without any parameter as last argument. | - |
+| -t | --target | Relative path to the css file. By default that file is appended to. It is created if it doesn't exist. | - |
 | -v | --verbose | Verbose outputs for debugging purposes. | false |
 
 ## Limitations
