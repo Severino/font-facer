@@ -6,7 +6,7 @@
   "type": "module",
   "preferGlobal": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx mocha ./test/test.js"
   },
   "keywords": [
     "generator",
@@ -22,5 +22,9 @@
     "scss"
   ],
   "author": "Severin Opel",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0"
+  }
 }

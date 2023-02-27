@@ -98,7 +98,7 @@ function getFontName(fontName, outDirectory) {
     return fontName
 }
 
-async function main() {
+export default async function main() {
 
     const {
         override,
