@@ -1,6 +1,6 @@
 {
   "name": "font-facer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Small tool to generate css font-face fields from a fonts folder structure",
   "main": "index.js",
   "type": "module",
