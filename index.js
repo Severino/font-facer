@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { createWriteStream } from "fs"
 import { readdir } from "fs/promises"
 import path, { extname } from "path"
