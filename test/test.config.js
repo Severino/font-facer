@@ -2,20 +2,20 @@
 
 
 export default {
-    all: [
-        "SimpleFont-Thin.ttf",
-        "SimpleFont-ThinItalic.ttf",
-        "SimpleFont-ExtraLight.ttf",
-        "SimpleFont-ExtraLightItalic.ttf",
-        "SimpleFont-RegularItalic.ttf",
-        "SimpleFont-Medium.ttf",
-        "SimpleFont-MediumItalic.ttf",
-        "SimpleFont-SemiBold.ttf",
-        "SimpleFont-SemiBoldItalic.ttf",
-        "SimpleFont-Bold.ttf",
-        "SimpleFont-BoldItalic.ttf",
-        "SimpleFont-Black.ttf",
-        "SimpleFont-BlackItalic.ttf",
+    DashFont: [
+        "DashFont-Thin.ttf",
+        "DashFont-ThinItalic.ttf",
+        "DashFont-ExtraLight.ttf",
+        "DashFont-ExtraLightItalic.ttf",
+        "DashFont-RegularItalic.ttf",
+        "DashFont-Medium.ttf",
+        "DashFont-MediumItalic.ttf",
+        "DashFont-SemiBold.ttf",
+        "DashFont-SemiBoldItalic.ttf",
+        "DashFont-Bold.ttf",
+        "DashFont-BoldItalic.ttf",
+        "DashFont-Black.ttf",
+        "DashFont-BlackItalic.ttf",
         "license.txt"
-    ]
+    ],
 }

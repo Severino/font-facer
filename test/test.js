@@ -1,12 +1,16 @@
 import { expect } from "chai";
+
 import config from "./test.config.js";
-import fs, { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, writeFileSync, readFileSync } from "fs";
 
 import { fileURLToPath } from 'url';
 import { dirname, join, relative, resolve, sep } from 'path';
 import { exec } from "child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const DashFontLocation = resolve(__dirname, "data", "DashFont")
+const DashFontLocationRelative = relative(resolve(), DashFontLocation)
 
 
 function setupFolderStructure(config) {
@@ -22,13 +26,13 @@ function setupFolderStructure(config) {
     }
 }
 
-describe("Test Font-Facer", function () {
+describe("Font-Facer", function () {
 
     this.beforeAll(function () {
         setupFolderStructure(config)
     })
 
-    describe("Test Arguments", function () {
+    describe("Arguments", function () {
 
         it("Fail when no arguments are passed", async function () {
             const indexFile = resolve(__dirname, "..", "index.js")
@@ -37,27 +41,163 @@ describe("Test Font-Facer", function () {
             })
         })
 
-        it("Succeed when source is provided", async function () {
+        it("Succeed when source is provided", function (done) {
             const indexFile = resolve(__dirname, "..", "index.js")
-            const sourceFolder = resolve(__dirname, "data", "all")
             const targetFile = resolve(__dirname, "data", "success.css")
-            const rel = relative(resolve(), sourceFolder)
+            const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
 
-            const command = `node ${indexFile} -t ${targetFile} ${rel}`
-            console.log(command)
+            const command = `node ${indexFile} -o -t ${targetFile} ${DashFontLocationRelative}`
             exec(command, function (error, stdout, stderr) {
-                console.log({ error, stdout, stderr })
+                const file = readFileSync(targetFile, { encoding: "utf-8" })
+                const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                expect(file).to.be.equal(truth)
+                done()
+            })
+        })
+
+        describe("'Source' Argument (-s, --source, last-argument)", async function () {
+
+            it("full name", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-source.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
+
+                const command = `node ${indexFile} --source ${DashFontLocationRelative} -o  -t ${targetFile}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+
+            it("abbrevation", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-source-abb.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
+
+                const command = `node ${indexFile} -s ${DashFontLocationRelative} -o  -t ${targetFile}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+
+            it("as last-argument", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-source-last-arg.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
+
+                const command = `node ${indexFile} -o  -t ${targetFile} ${DashFontLocationRelative}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
             })
         })
 
 
-        // it("Succeed when source is provided", async function () {
-        //     const indexFile = resolve(__dirname, "..", "index.js")
-        //     const sourceFolder = resolve(__dirname, "data", "all")
-        //     exec(`node ${indexFile} ${sourceFolder}`, function (error, stdout, stderr) {
-        //         console.log({ error, stdout, stderr })
-        //     })
-        // })
+        describe("'Target' argument (-t, --target)", async function () {
 
+            it("full name", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-target.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
+
+                const command = `node ${indexFile} -o  --target ${targetFile} ${DashFontLocationRelative}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+
+            it("abbrevation", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-target-abb.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
+
+                const command = `node ${indexFile} -o  -t ${targetFile} ${DashFontLocationRelative}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+        })
+
+        describe("'Font Name' Argument (-f, --font-name)", async function () {
+
+            it("full name", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-font-name.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-font-name.css")
+
+                const command = `node ${indexFile} -o --font-name FontName  -t ${targetFile} ${DashFontLocationRelative}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+
+            it("abbrevation", function (done) {
+                const indexFile = resolve(__dirname, "..", "index.js")
+                const targetFile = resolve(__dirname, "output", "DashFont-font-name-abb.css")
+                const compareFile = resolve(__dirname, "compare", "DashFont-font-name.css")
+
+                const command = `node ${indexFile} -o -f FontName  -t ${targetFile} ${DashFontLocationRelative}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+        })
+    })
+
+    describe("Append / Override", function () {
+
+        it("Override", function (done) {
+            const indexFile = resolve(__dirname, "..", "index.js")
+            const targetFile = resolve(__dirname, "output", "DashFont-override.css")
+            const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
+
+            const command = `node ${indexFile} -o  -t ${targetFile} ${DashFontLocationRelative}`
+            exec(command, function (error, stdout, stderr) {
+                const command = `node ${indexFile} -o  -t ${targetFile} ${DashFontLocationRelative}`
+                exec(command, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.equal(truth)
+                    done()
+                })
+            })
+        })
+
+        it("Append", function (done) {
+            const indexFile = resolve(__dirname, "..", "index.js")
+            const targetFile = resolve(__dirname, "output", "DashFont-appended.css")
+            const compareFile = resolve(__dirname, "compare", "DashFont-appended.css")
+
+            const baseFile = `node ${indexFile} -o  -t ${targetFile} ${DashFontLocationRelative}`
+            exec(baseFile, function (error, stdout, stderr) {
+                const baseFile = `node ${indexFile}  -t ${targetFile} ${DashFontLocationRelative}`
+                exec(baseFile, function (error, stdout, stderr) {
+                    const file = readFileSync(targetFile, { encoding: "utf-8" })
+                    const truth = readFileSync(compareFile, { encoding: "utf-8" })
+                    expect(file).to.be.equal(truth)
+                    done()
+                })
+            })
+        })
     })
 })
