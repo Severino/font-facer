@@ -1,10 +1,10 @@
 import { expect } from "chai";
 
 import config from "./test.config.js";
-import { mkdirSync, writeFileSync, readFileSync } from "fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
 
 import { fileURLToPath } from 'url';
-import { dirname, join, relative, resolve, sep } from 'path';
+import path, { dirname, join, relative, resolve, sep } from 'path';
 import { exec } from "child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -15,13 +15,22 @@ const DashFontLocationRelative = relative(resolve(), DashFontLocation)
 
 function setupFolderStructure(config) {
 
+    // Create the output directory if it doesn't exists
+    const outdir = path.join(__dirname, "output")
+    if (!existsSync(outdir))
+        mkdirSync(outdir)
+
+    // Create file structure as described in 'test.config.js
     for (let [name, files] of Object.entries(config)) {
         files.forEach(file => {
-            const parts = join(__dirname, "data", name, file).split(sep)
-            const filename = parts.pop()
+            const parts = join(__dirname, "data", name).split(sep)
 
-            mkdirSync(parts.join(sep), { recursive: true })
-            writeFileSync(join(...parts, file), "")
+            const fontDir = parts.join(sep)
+            if (!existsSync(fontDir))
+                mkdirSync(fontDir, { recursive: true })
+
+            const fontFile = join(...parts, file)
+            writeFileSync(fontFile, "")
         });
     }
 }
@@ -43,7 +52,7 @@ describe("Font-Facer", function () {
 
         it("Succeed when source is provided", function (done) {
             const indexFile = resolve(__dirname, "..", "index.js")
-            const targetFile = resolve(__dirname, "data", "success.css")
+            const targetFile = resolve(__dirname, "output", "success.css")
             const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
 
             const command = `node ${indexFile} -o -t ${targetFile} ${DashFontLocationRelative}`
