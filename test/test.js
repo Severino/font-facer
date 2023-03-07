@@ -23,13 +23,11 @@ function setupFolderStructure(config) {
     // Create file structure as described in 'test.config.js
     for (let [name, files] of Object.entries(config)) {
         files.forEach(file => {
-            const parts = join(__dirname, "data", name).split(sep)
-
-            const fontDir = parts.join(sep)
+            const fontDir = join(__dirname, "data", name)
             if (!existsSync(fontDir))
                 mkdirSync(fontDir, { recursive: true })
 
-            const fontFile = join(...parts, file)
+            const fontFile = join(__dirname, "data", name, file)
             writeFileSync(fontFile, "")
         });
     }
