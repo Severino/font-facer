@@ -50,7 +50,7 @@ describe("Font-Facer", function () {
 
         it("Succeed when source is provided", function (done) {
             const indexFile = resolve(__dirname, "..", "index.js")
-            const targetFile = resolve(__dirname, "output", "success.css")
+            const targetFile = resolve(__dirname, "output", "DashFont-success.css")
             const compareFile = resolve(__dirname, "compare", "DashFont-success.css")
 
             const command = `node ${indexFile} -o -t ${targetFile} ${DashFontLocationRelative}`
