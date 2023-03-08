@@ -1,6 +1,6 @@
 {
   "name": "font-facer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Small tool to generate css font-face fields from a fonts folder structure",
   "main": "index.js",
   "type": "module",
@@ -8,7 +8,7 @@
   "scripts": {
     "test": "npx mocha ./test/test.js"
   },
-  "bin": "node ./index.js",
+  "bin": "./index.js",
   "keywords": [
     "generator",
     "font",

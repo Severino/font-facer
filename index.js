@@ -165,6 +165,8 @@ export default async function main() {
             writeStream.write(fontFace)
         }
     }
+
+    console.log(`Font file was successfully written to: ${outputFileFullPath}.`)
 }
 
 /**
